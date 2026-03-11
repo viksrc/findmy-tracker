@@ -1,0 +1,9 @@
+account.json
+ani_libs.bin
+devices/
+plists/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store

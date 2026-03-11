@@ -1,0 +1,17 @@
+[project]
+name = "findmy-tracker"
+version = "0.1.0"
+description = "Fetch current location and status of all Apple FindMy devices in your account"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "findmy>=0.9.0",
+]
+
+[project.scripts]
+fetch-devices = "findmy_tracker.fetch_all_devices:main"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.4.0",
+]
