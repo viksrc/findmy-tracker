@@ -56,7 +56,7 @@ def battery_level(status: int) -> str:
 
 
 def _make_anisette() -> LocalAnisetteProvider:
-    return LocalAnisetteProvider(ANISETTE_LIBS)
+    return LocalAnisetteProvider(libs_path=ANISETTE_LIBS)
 
 
 # ---------------------------------------------------------------------------
