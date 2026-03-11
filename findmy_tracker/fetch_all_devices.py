@@ -146,42 +146,38 @@ def _format_age(timestamp: datetime | None) -> str:
     return f"{total_seconds // 86400}d ago"
 
 
-def print_results(
-    device_pairs: list[tuple[FindMyAccessory, Path]],
-    locations: dict,
-) -> None:
-    """Pretty-print a table of device locations."""
-    col = {"name": 30, "lat": 10, "lon": 11, "acc": 9, "bat": 10, "age": 12}
+COL = {"name": 30, "lat": 10, "lon": 11, "acc": 9, "bat": 10, "age": 12}
+
+
+def _print_header() -> None:
     header = (
-        f"{'Device':<{col['name']}} "
-        f"{'Latitude':>{col['lat']}} "
-        f"{'Longitude':>{col['lon']}} "
-        f"{'Accuracy':>{col['acc']}} "
-        f"{'Battery':<{col['bat']}} "
+        f"{'Device':<{COL['name']}} "
+        f"{'Latitude':>{COL['lat']}} "
+        f"{'Longitude':>{COL['lon']}} "
+        f"{'Accuracy':>{COL['acc']}} "
+        f"{'Battery':<{COL['bat']}} "
         f"Last Seen"
     )
     print()
     print(header)
-    print("─" * (sum(col.values()) + len(col) + 5))
+    print("─" * (sum(COL.values()) + len(COL) + 5))
 
-    for device, path in device_pairs:
-        name = _device_name(device, path)
-        location = locations.get(device)
 
-        if location is None:
-            print(f"{name:<{col['name']}}  (no location report available)")
-            continue
-
-        bat = battery_level(location.status)
-        age = _format_age(getattr(location, "timestamp", None))
-        print(
-            f"{name:<{col['name']}} "
-            f"{location.latitude:>{col['lat']}.5f} "
-            f"{location.longitude:>{col['lon']}.5f} "
-            f"{location.horizontal_accuracy:>{col['acc']}.0f}m "
-            f"{bat:<{col['bat']}} "
-            f"{age}"
-        )
+def _print_device_row(device: FindMyAccessory, path: Path, location) -> None:
+    name = _device_name(device, path)
+    if location is None:
+        print(f"{name:<{COL['name']}}  (no location report available)")
+        return
+    bat = battery_level(location.status)
+    age = _format_age(getattr(location, "timestamp", None))
+    print(
+        f"{name:<{COL['name']}} "
+        f"{location.latitude:>{COL['lat']}.5f} "
+        f"{location.longitude:>{COL['lon']}.5f} "
+        f"{location.horizontal_accuracy:>{COL['acc']}.0f}m "
+        f"{bat:<{COL['bat']}} "
+        f"{age}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -214,13 +210,15 @@ def main() -> None:
     acc = get_or_login()
     print(f"[auth] Signed in as {acc.account_name} ({acc.first_name} {acc.last_name})")
 
-    # 3. Fetch locations
-    devices = [d for d, _ in device_pairs]
-    print(f"\nFetching locations for {len(devices)} device(s) …")
-    locations = acc.fetch_location(devices)
-
-    # 4. Print results
-    print_results(device_pairs, locations)
+    # 3. Fetch and print locations one device at a time
+    print(f"\nFetching locations for {len(device_pairs)} device(s) …")
+    _print_header()
+    for device, path in device_pairs:
+        name = _device_name(device, path)
+        print(f"  → {name} …", end="", flush=True)
+        location = acc.fetch_location(device)
+        print("\r", end="")  # overwrite the "fetching" line
+        _print_device_row(device, path, location)
 
     # 5. Persist updated session and device states
     acc.to_json(ACCOUNT_FILE)
