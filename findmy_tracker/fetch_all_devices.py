@@ -179,7 +179,7 @@ def print_results(
             f"{name:<{col['name']}} "
             f"{location.latitude:>{col['lat']}.5f} "
             f"{location.longitude:>{col['lon']}.5f} "
-            f"{location.accuracy:>{col['acc']}.0f}m "
+            f"{location.horizontal_accuracy:>{col['acc']}.0f}m "
             f"{bat:<{col['bat']}} "
             f"{age}"
         )

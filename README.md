@@ -28,7 +28,7 @@ Built on top of [FindMy.py](https://github.com/malmeloo/FindMy.py).
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourname/findmy-tracker
+git clone https://github.com/viksrc/findmy-tracker
 cd findmy-tracker
 
 # Install dependencies with uv
@@ -39,27 +39,35 @@ uv sync
 
 ## Setup: Export Your Device Keys (one-time, requires a Mac)
 
-Apple stores FindMy device keys locally on your Mac. You need to export and convert them once.
+Apple stores FindMy device keys in the local keychain. The `setup_devices.py` script reads and decrypts them automatically.
 
-### Step 1 — Copy plist files
+**Before running**, grant your terminal Full Disk Access:
+`System Settings -> Privacy & Security -> Full Disk Access` (add Terminal or iTerm2).
 
 ```bash
-mkdir -p plists
-
-# AirTags and accessories you own
-cp ~/Library/Application\ Support/com.apple.icloud.searchpartyd/OwnedBeacons/*.plist ./plists/
-
-# Your Apple devices (iPhone, iPad, Mac, etc.)
-cp ~/Library/Application\ Support/com.apple.icloud.searchpartyd/ParticipatingDevices/*.plist ./plists/
+uv run python setup_devices.py
 ```
 
-> **Tip:** If you see "permission denied", grant your terminal Full Disk Access in
-> `System Settings -> Privacy & Security -> Full Disk Access`.
+This decrypts all your FindMy accessories from the keychain and saves them as `.json` files in `devices/`.
 
-### Step 2 — Convert plist to JSON
+### Manual alternative
+
+If `setup_devices.py` doesn't work, you can export and convert plist files manually:
 
 ```bash
 mkdir -p devices
+
+# Decrypt and save all devices at once
+uv run python -m findmy decrypt --out-dir devices/
+```
+
+Or copy raw plist files and convert individually:
+
+```bash
+mkdir -p plists devices
+
+cp ~/Library/Application\ Support/com.apple.icloud.searchpartyd/OwnedBeacons/*.plist ./plists/
+cp ~/Library/Application\ Support/com.apple.icloud.searchpartyd/ParticipatingDevices/*.plist ./plists/
 
 for f in plists/*.plist; do
   uv run python -m findmy plist2json "$f" -o "devices/$(basename "$f" .plist).json"
@@ -104,9 +112,10 @@ MacBook Pro                    37.33180  -122.03122       15m Medium     12m ago
 findmy-tracker/
 ├── findmy_tracker/
 │   ├── __init__.py
-│   └── fetch_all_devices.py   # main script
+│   └── fetch_all_devices.py   # main location fetcher
+├── setup_devices.py           # one-time setup (Mac only)
+├── main.py                    # entry point: uv run python main.py
 ├── devices/                   # your converted device .json files (git-ignored)
-├── plists/                    # raw exported .plist files (git-ignored)
 ├── account.json               # cached login session (git-ignored)
 ├── ani_libs.bin               # Anisette libs cache (git-ignored, ~200 MB)
 ├── pyproject.toml
