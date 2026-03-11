@@ -68,12 +68,11 @@ def get_or_login() -> AppleAccount:
     Load a cached Apple account session, or perform an interactive login
     with full 2FA support (SMS or Trusted Device).
     """
-    anisette = _make_anisette()
-
     if ACCOUNT_FILE.exists():
         print(f"[auth] Loading saved session from '{ACCOUNT_FILE}' …")
-        return AppleAccount.from_json(ACCOUNT_FILE, anisette)
+        return AppleAccount.from_json(ACCOUNT_FILE, anisette_libs_path=ANISETTE_LIBS)
 
+    anisette = _make_anisette()
     acc = AppleAccount(anisette)
 
     email = input("Apple ID email: ").strip()
